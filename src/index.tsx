@@ -1,8 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
+import './styles/tailwind.css';
+import WarehouseBrowser from './WarehouseBrowser';
 import * as serviceWorker from './serviceWorker';
+import client from './client';
+import { ApolloProvider } from '@apollo/react-hooks';
+import { BrowserRouter as Router } from "react-router-dom";
+
+const App = () => (
+  <Router>
+    <ApolloProvider client={client}>
+      <WarehouseBrowser/>
+    </ApolloProvider>
+  </Router>
+);
 
 ReactDOM.render(<App />, document.getElementById('root'));
 
