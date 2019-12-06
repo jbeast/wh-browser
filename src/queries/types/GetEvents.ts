@@ -2,6 +2,8 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
+import { SubjectRole } from "./../../types/graphql-global-types";
+
 // ====================================================
 // GraphQL query operation: GetEvents
 // ====================================================
@@ -35,7 +37,7 @@ export interface GetEvents_getEvents_events_roles {
 
 export interface GetEvents_getEvents_events {
   __typename: "Event";
-  occuredAt: string;
+  occuredAt: any;
   eventType: GetEvents_getEvents_events_eventType;
   roles: GetEvents_getEvents_events_roles[];
   userIdentifier: string;
@@ -44,6 +46,8 @@ export interface GetEvents_getEvents_events {
 
 export interface GetEvents_getEvents {
   __typename: "GetEventsPayload";
+  sql: string | null;
+  count: number | null;
   events: GetEvents_getEvents_events[];
 }
 
@@ -54,4 +58,8 @@ export interface GetEvents {
 export interface GetEventsVariables {
   eventTypes: string[];
   limsIds?: string[] | null;
+  occuredAfter?: any | null;
+  occuredBefore?: any | null;
+  subjectRoles?: SubjectRole[] | null;
+  offset?: number | null;
 }

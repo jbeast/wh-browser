@@ -1,4 +1,4 @@
-import React, { Dispatch, useEffect, useState } from 'react';
+import React, { Dispatch, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@apollo/react-hooks';
 import LOAD_EVERYTHING_QUERY from './queries/load-everything';
 import {
@@ -9,6 +9,7 @@ import {
 import { QueryParams } from './types/app-types';
 import { Action } from './types/app-types';
 import { partition } from 'lodash';
+import { SubjectRole } from './types/graphql-global-types';
 
 const Sidebar: React.FC<{ query: QueryParams, dispatch: Dispatch<Action> }> = ({ query, dispatch }) => {
   const { loading, error, data, refetch } = useQuery<loadEverything, loadEverythingVariables>(LOAD_EVERYTHING_QUERY, {
@@ -19,32 +20,68 @@ const Sidebar: React.FC<{ query: QueryParams, dispatch: Dispatch<Action> }> = ({
 
   useEffect(() => {
     refetch();
-  }, [query.environment]);
+  }, [query.environment, refetch]);
 
-  if (error) return <p>Error :(</p>;
+  if (loading) return <p><Logo />Loading...</p>;
+  if (error) return <p><Logo />Error :(</p>;
 
   let lims: loadEverything_getLims_lims[] = [];
   let eventTypes: loadEverything_getEventTypes_eventTypes[] = [];
   let selectedLimsLength = 0;
   let selectedEventTypesLength = 0;
+  let roleTypeOptions = new Array<React.ReactElement>();
 
   if (data) {
     const [selectedLims, otherLims] = partition(data.getLims.lims, (lims) => query.lims.includes(lims.id));
-    const [selectedEventTypes, otherEventTypes] = partition(data.getEventTypes.eventTypes, (et) => query.eventTypes.includes(et.key));
+    const [selectedEventTypes, otherEventTypes] = partition(data.getEventTypes.eventTypes, et => query.eventTypes.includes(et.key));
     lims = [...selectedLims, ...otherLims];
     selectedLimsLength = selectedLims.length;
     eventTypes = [...selectedEventTypes, ...otherEventTypes];
     selectedEventTypesLength = selectedEventTypes.length;
+    roleTypeOptions = data.getRoleTypes.roleTypes.map((rt, index) => <option key={index} value={rt.key}>{rt.key}</option>);
+    roleTypeOptions.unshift(<option key="empty" value=""></option>);
   }
 
   return (
-    <div className="h-full w-1/5 overflow-y-scroll p-4 bg-gray-200 border-r-2 border-gray-300">
+    <div>
 
-      <img src="sangerlogo.png" alt="Sanger Logo" className="mb-4 ml-2 h-12 w-12"/>
+      <Logo />
 
-      <div className="ml-2 mb-4">
-        <input type="date" className="w-full mb-1 -ml-2 py-1 border rounded" defaultValue="25-11-1986"/>
-        <input type="date" className="w-full mb-1 -ml-2 py-1 border rounded" defaultValue="25-11-2019" />
+      <SidebarSection title="">
+
+        <div className="flex justify-between">
+          <h2 className="self-center mb-2 h-4 text-xs font-semibold text-gray-600 uppercase tracker-wide">Occured After</h2>
+          <input type="date"
+                 className="w-7/12 mb-1 py-1 border rounded text-xs text-gray-600"
+                 defaultValue={query.occuredAfter}
+                 onChange={(e) => dispatch({type: "SET_OCCURED_AFTER", value: e.target.value})} />
+        </div>
+
+        <div className="flex justify-between">
+          <h2 className="self-center mb-2 h-4 text-xs font-semibold text-gray-600 uppercase tracker-wide">Occured Before</h2>
+          <input type="date"
+                 className="w-7/12 mb-1 py-1 border rounded text-xs text-gray-600"
+                 defaultValue={query.occuredBefore}
+                 onChange={(e) => dispatch({type: "SET_OCCURED_BEFORE", value: e.target.value})} />
+        </div>
+      </SidebarSection>
+
+      <div className="ml-2 pb-4 mb-4 border-b-2">
+        <h2 className="mb-2 text-xs font-semibold text-gray-600 uppercase tracker-wide">Roles
+          <span onClick={() => dispatch({ type: "ADD_SUBJECT_ROLE" })} className="cursor-pointer hover:text-blue-800"> {String.fromCharCode(8853)}</span>
+        </h2>
+
+        { query.subjectRoles.map((sr, index) => {
+          return <SubjectRoleSection
+            key={index}
+            index={index}
+            dispatch={dispatch}
+            roleTypeOptions={roleTypeOptions}
+            subjectRole={sr} />
+          })
+
+        }
+
       </div>
 
       <SidebarSection title="LIMS" limit={Math.max(3, selectedLimsLength)}>
@@ -81,6 +118,31 @@ const Sidebar: React.FC<{ query: QueryParams, dispatch: Dispatch<Action> }> = ({
   )
 };
 
+const Logo: React.FC = () => {
+  return <img src="sangerlogo.png" alt="Sanger Logo" className="mb-4 ml-2 h-12 w-12"/>;
+};
+
+const SubjectRoleSection: React.FC<{ dispatch: Dispatch<Action>, index: number, subjectRole: SubjectRole, roleTypeOptions: React.ReactElement[]}> = ({ dispatch, index, subjectRole, roleTypeOptions }) => {
+  const roleTypeRef = useRef<HTMLSelectElement>(null);
+  const subjectRef = useRef<HTMLInputElement>(null);
+
+  const onChange = () => {
+    if (roleTypeRef.current && subjectRef.current) {
+      dispatch({ type: "UPDATE_SUBJECT_ROLE", index: index, value: { roleType: roleTypeRef.current.value, subject: subjectRef.current.value }})
+    }
+  };
+
+  return (
+    <>
+      <span onClick={() => dispatch({ type: "REMOVE_SUBJECT_ROLE", index: index })} className="cursor-pointer hover:text-blue-800 h-4 text-gray-600">{String.fromCharCode(10799)}</span>
+      <select onChange={onChange} ref={roleTypeRef} className="w-full py-1 mb-1 border rounded text-xs text-gray-600" name="role_type" value={subjectRole.roleType || ""}>
+        { roleTypeOptions }
+      </select>
+      <input onChange={onChange} ref={subjectRef} type="text" className="w-full mb-1 py-1 px-1 border rounded text-xs text-gray-600" value={subjectRole.subject || ""} placeholder=" Subject"/>
+    </>
+  )
+};
+
 const SidebarSection: React.FC<{ title: string, limit?: number }> = (params) => {
   const [isOpen, setIsOpen] = useState(false);
   const tooManyChildren: boolean = params.limit ? React.Children.count(params.children) > params.limit : false;
@@ -94,7 +156,7 @@ const SidebarSection: React.FC<{ title: string, limit?: number }> = (params) => 
   const onClick = () => setIsOpen(!isOpen);
 
   return (
-    <div className="ml-2 mb-4">
+    <div className="ml-2 pb-4 mb-4 border-b-2">
       <h2 className="mb-2 text-xs font-semibold text-gray-600 uppercase tracker-wide">{ params.title }</h2>
       <div className="flex flex-col">
         { children }

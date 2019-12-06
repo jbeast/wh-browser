@@ -2,4 +2,28 @@
 
 @tailwind components;
 
+.pg-btn {
+    @apply bg-blue-700 text-white uppercase my-2 px-3 py-2 border border-gray-800;
+}
+
+.pg-btn:hover {
+    @apply bg-blue-600;
+}
+
+.pg-btn:active {
+    @apply bg-blue-800;
+}
+
+.pg-disabled {
+    @apply bg-gray-400 border border-gray-500 text-gray-500 italic cursor-default;
+}
+
+.pg-disabled:hover {
+    @apply bg-gray-400;
+}
+
+.pg-disabled:active {
+    @apply bg-gray-400;
+}
+
 @tailwind utilities;

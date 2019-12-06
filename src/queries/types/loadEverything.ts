@@ -41,10 +41,22 @@ export interface loadEverything_getLims {
   lims: loadEverything_getLims_lims[];
 }
 
+export interface loadEverything_getRoleTypes_roleTypes {
+  __typename: "SlimRoleType";
+  key: string;
+}
+
+export interface loadEverything_getRoleTypes {
+  __typename: "GetRoleTypesPayload";
+  sql: string | null;
+  roleTypes: loadEverything_getRoleTypes_roleTypes[];
+}
+
 export interface loadEverything {
   getEventTypes: loadEverything_getEventTypes;
   getUsers: loadEverything_getUsers;
   getLims: loadEverything_getLims;
+  getRoleTypes: loadEverything_getRoleTypes;
 }
 
 export interface loadEverythingVariables {

@@ -11,6 +11,11 @@ export enum Environment {
   staging = "staging",
 }
 
+export interface SubjectRole {
+  roleType?: string | null;
+  subject?: string | null;
+}
+
 //==============================================================
 // END Enums and Input Objects
 //==============================================================

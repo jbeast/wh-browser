@@ -22,5 +22,11 @@ export default gql`
                 eventCount
             }
         }
+        getRoleTypes {
+            sql
+            roleTypes {
+                key
+            }
+        }
     }
 `;

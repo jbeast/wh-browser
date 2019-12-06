@@ -7,7 +7,7 @@ const Header: React.FC<{ query: QueryParams, dispatch: Dispatch<Action> }> = ({ 
   return (
     <div className="flex justify-between items-center mb-4 py-4 border-b-2 border-gray-300">
 
-      <h1 className="font-semibold text-gray-800 text-4xl">Warehouse Browser</h1>
+      <h1 className="font-semibold text-gray-800 text-4xl uppercase tracking-wider">Warehouse Browser</h1>
 
       <span className="inline-flex border border-8 border-grey-200 bg-blue-700 rounded text-white uppercase font-light leading-loose tracking-tighter">
         <EnvironmentLink env={Environment.staging} dispatch={dispatch} active={query.environment===Environment.staging}/>
